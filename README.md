@@ -6,20 +6,19 @@
 
 它不是一个业务项目，而是一套**给 AI 编码 agent 用的工作流脚手架**：
 
-- **Harness**：本仓库针对 Qoder，配置在 `.qoder/`
-- **OpenSpec**（[Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec)）：通过 `openspec init --tools qoder` **真实初始化**，CLI 由 `@fission-ai/openspec` 提供
+- **Harness**：双工具配置——Claude Code 用 `.claude/`，Codex 用 `.agents/`，共享规约在 `.agents/rules/`
+- **OpenSpec**（[Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec)）：通过 `openspec init --tools claude,codex` **真实初始化**，CLI 由 `@fission-ai/openspec` 提供
 - **Superpowers**（[obra/superpowers](https://github.com/obra/superpowers)）：8 个核心 skills 的本地化模板，与 OpenSpec 官方 skill 共存
 
 ## 目录速览
 
 ```
 .
-├── AGENTS.md              # AI agent 入口（先读这个）
-├── .qoder/                # Harness 层
-│   ├── rules/             # always-on 规则
-│   ├── commands/          # 斜杠命令（propose/apply/archive）
-│   ├── agents/            # subagent 定义
-│   └── skills/            # superpowers 风格 skills
+├── AGENTS.md              # AI agent 入口（先读这个，Claude Code / Codex 原生加载）
+├── .claude/               # Harness 层（Claude Code：skills + commands）
+├── .agents/               # Harness 层（Codex：skills）+ 双工具共享 rules
+│   ├── rules/             # 编码 / 分域规约（共享）
+│   └── skills/            # OpenSpec 官方 + superpowers skills（Codex 用）
 ├── openspec/              # Spec 层
 │   ├── project.md         # 项目愿景与范围
 │   ├── specs/             # 已稳定的能力 spec
@@ -30,11 +29,10 @@
 
 ## 怎么用
 
-1. 重启 Qoder 让 OpenSpec 注入的斜杠命令生效。
-2. 用 `/opsx:propose 加一个 hello world 命令行工具` 开局。
-3. OpenSpec 会按流程生成 `openspec/changes/<name>/{proposal,design,tasks}.md`，等你签字。
-4. 用 `/opsx:apply` 推进实现——superpowers 的 `test-driven-development` skill 会自动触发，强制 RED→GREEN→REFACTOR。
-5. 完成后 `/opsx:archive` 归档。
+1. Claude Code 直接用 `/opsx:propose 加一个 hello world 命令行工具` 开局；Codex 用 `$openspec-propose <描述>`。
+2. OpenSpec 会按流程生成 `openspec/changes/<name>/{proposal,design,tasks}.md`，等你签字。
+3. 用 `/opsx:apply`（Codex：`$openspec-apply-change`）推进实现——superpowers 的 `test-driven-development` skill 会介入，强制 RED→GREEN→REFACTOR。
+4. 完成后 `/opsx:archive`（Codex：`$openspec-archive-change`）归档。
 
 ## 依赖
 

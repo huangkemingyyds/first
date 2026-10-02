@@ -1,5 +1,5 @@
 ### Requirement: 规约文档与代码现状对齐
-`.qoder/rules/` 下的规约文档 SHALL 准确反映项目当前的技术栈与实现方式，不得描述已被替换的技术方案。
+`.agents/rules/` 下的规约文档 SHALL 准确反映项目当前的技术栈与实现方式，不得描述已被替换的技术方案。
 
 #### Scenario: database-conventions 开发环境描述与实际一致
 - **WHEN** 开发者阅读 database-conventions.md 的"开发环境"小节

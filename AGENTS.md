@@ -1,12 +1,12 @@
 # AGENTS.md
 
-本仓库是 **AIWorkSpace** —— 一个由 AI coding agent 驱动、Spec-Driven 的多仓工作区。任何 agent（Qoder / Claude Code / Codex / Cursor 等）进入仓库时，**先读这一份**。
+本仓库是 **AIWorkSpace** —— 一个由 AI coding agent 驱动、Spec-Driven 的多仓工作区。任何 agent（主力 Claude Code / Codex，其它 agent 同样适用）进入仓库时，**先读这一份**。
 
 ## 仓库拓扑
 
 | 角色 | Git 仓库 | 路径 | 内容 |
 |---|---|---|---|
-| 工作区父仓 | https://github.com/sqlyouran/first | `.` | Harness（`.qoder/`）+ Spec（`openspec/`）+ submodule 指针 |
+| 工作区父仓 | https://github.com/sqlyouran/first | `.` | Harness（`.claude/` + `.agents/`）+ Spec（`openspec/`）+ submodule 指针 |
 | Backend submodule | https://github.com/sqlyouran/first_backend | `backend/` | Java 17 + Spring Boot 3.3.5，HTTP API（端口 8080） |
 | Frontend submodule | https://github.com/sqlyouran/first_frontend | `frontend/` | Next.js 16 (App Router) + React 19 + TypeScript，UI 与薄 BFF（端口 3000） |
 
@@ -37,9 +37,12 @@ frontend 同理。
 
 | 层 | 目录 | 职责 |
 |---|---|---|
-| Harness | `.qoder/` | 当前 IDE 的 agent 配置（rules / skills / commands / agents） |
+| Harness | `.claude/`（Claude Code）+ `.agents/`（Codex） | 各工具的 agent 配置（skills / commands） |
 | OpenSpec | `openspec/` | Spec-driven 工作流：先对齐 spec，再写代码 |
-| Superpowers | `.qoder/skills/` | 可组合的 skill 方法论，自动触发 |
+| Superpowers | `.claude/skills/` + `.agents/skills/` | 可组合的 skill 方法论（TDD / 计划 / review） |
+| 共享规约 | `.agents/rules/` | 双工具共用的编码 / 分域规约，写码前必读 |
+
+> 双工具共享同一套治理资产：`AGENTS.md`（两工具原生读取）+ `openspec/` + `.agents/rules/`。OpenSpec skill 由 CLI 为各工具安装原生拷贝，用 `openspec update` 同步升级；superpowers skill 为静态 markdown 双份拷贝，改动时两侧同步。
 
 ## 子模块说明
 
@@ -126,22 +129,25 @@ frontend 同理。
 
 ## 快速入口
 
-- 编码规约：[`.qoder/rules/coding-conventions.md`](.qoder/rules/coding-conventions.md)
-- 工作流规则：[`.qoder/rules/spec-driven-workflow.md`](.qoder/rules/spec-driven-workflow.md)
-- OpenSpec 官方命令：`.qoder/commands/opsx/{propose,apply,archive,explore}.md`
-- OpenSpec 官方 skills：`.qoder/skills/openspec-{propose,apply-change,archive-change,explore}/SKILL.md`
-- Superpowers skills：`.qoder/skills/{brainstorming,writing-plans,executing-plans,test-driven-development,subagent-driven-development,using-git-worktrees,requesting-code-review,verification-before-completion}/SKILL.md`
+- 编码规约：[`.agents/rules/coding-conventions.md`](.agents/rules/coding-conventions.md)
+- 工作流规则：[`.agents/rules/spec-driven-workflow.md`](.agents/rules/spec-driven-workflow.md)
+- 分域规约：`.agents/rules/{api,backend,frontend,database,styling}-conventions.md`
+- OpenSpec 命令（Claude Code）：`.claude/commands/opsx/{propose,apply,archive,explore,sync}.md`
+- OpenSpec skills：`.claude/skills/` 与 `.agents/skills/` 下的 `openspec-*/SKILL.md`（CLI 维护，勿手改）
+- Superpowers skills：`.claude/skills/` 与 `.agents/skills/` 下的 `{brainstorming,writing-plans,executing-plans,test-driven-development,subagent-driven-development,using-git-worktrees,requesting-code-review,verification-before-completion}/SKILL.md`
 - OpenSpec 配置：[`openspec/config.yaml`](openspec/config.yaml)
 - 项目级 spec：[`openspec/project.md`](openspec/project.md)
 - 当前进行中的变更：`openspec/changes/`
 
 ## 第一次使用
 
-本项目用 `openspec init --tools qoder` 初始化，斜杠命令由 OpenSpec CLI 提供：
+本项目用 `openspec init --tools claude,codex` 初始化，OpenSpec CLI 为两个工具各装一份原生命令：
 
-- `/opsx:propose <idea>` — 创建变更（生成 proposal/design/tasks）
-- `/opsx:apply` — 按 tasks.md 推进实现（走 superpowers 的 TDD skill）
-- `/opsx:archive` — 归档完成的变更
-- `/opsx:explore` — 浏览已有 specs 与 changes
+| 动作 | Claude Code | Codex |
+|---|---|---|
+| 创建变更（生成 proposal/design/tasks） | `/opsx:propose <idea>` | `$openspec-propose <idea>` |
+| 按 tasks.md 推进实现（强制走 TDD skill） | `/opsx:apply` | `$openspec-apply-change` |
+| 归档完成的变更 | `/opsx:archive` | `$openspec-archive-change` |
+| 浏览已有 specs 与 changes | `/opsx:explore` | `$openspec-explore` |
 
-> 重启 Qoder 让斜杠命令生效。
+> 写任何 submodule 代码前，先读 `.agents/rules/` 下对应语言的规约文件。

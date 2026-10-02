@@ -108,7 +108,7 @@ Wanderchina
 
 ## 质量底线
 
-- 所有改动走 TDD（见 `.qoder/skills/test-driven-development/`）。
+- 所有改动走 TDD（见 `.agents/skills/test-driven-development/`）。
 - 主分支测试始终绿灯。
 - 公开 API 改动必须先有对应 spec 更新。
 
