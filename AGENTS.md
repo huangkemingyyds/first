@@ -6,7 +6,7 @@
 
 | 角色 | Git 仓库 | 路径 | 内容 |
 |---|---|---|---|
-| 工作区父仓 | https://github.com/sqlyouran/first | `.` | Harness（`.claude/` + `.agents/`）+ Spec（`openspec/`）+ submodule 指针 |
+| 工作区父仓 | https://github.com/huangkemingyyds/first | `.` | Harness（`.claude/` + `.agents/`）+ Spec（`openspec/`）+ submodule 指针 |
 | Backend submodule | https://github.com/sqlyouran/first_backend | `backend/` | Java 17 + Spring Boot 3.3.5，HTTP API（端口 8080） |
 | Frontend submodule | https://github.com/sqlyouran/first_frontend | `frontend/` | Next.js 16 (App Router) + React 19 + TypeScript，UI 与薄 BFF（端口 3000） |
 
@@ -15,7 +15,7 @@
 ### 首次 clone 必须 `--recursive`
 
 ```bash
-git clone --recursive https://github.com/sqlyouran/first.git
+git clone --recursive https://github.com/huangkemingyyds/first.git
 # 已 clone 但 submodule 是空目录时：
 git submodule update --init --recursive
 ```
