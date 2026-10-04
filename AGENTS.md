@@ -41,9 +41,9 @@ frontend 同理。
 | OpenSpec | `openspec/` | Spec-driven 工作流：先对齐 spec，再写代码 |
 | Superpowers | `.claude/skills/` + `.agents/skills/` | 可组合的 skill 方法论（TDD / 计划 / review） |
 | 共享规约 | `.agents/rules/` | 双工具共用的编码 / 分域规约，写码前必读 |
-| Subagents | `.claude/agents/` | Claude Code 原生 subagent 定义（7 角色：product-manager / frontend / backend / interaction / experience / spec-reviewer / test-agent） |
+| Subagents | `.claude/agents/`（md）+ `.codex/agents/`（toml） | 双工具原生 subagent 定义（7 角色：product-manager / frontend / backend / interaction / experience / spec-reviewer / test-agent） |
 
-> 双工具共享同一套治理资产：`AGENTS.md`（两工具原生读取）+ `openspec/` + `.agents/rules/`。OpenSpec skill 由 CLI 为各工具安装原生拷贝，用 `openspec update` 同步升级；superpowers skill 为静态 markdown 双份拷贝，改动时两侧同步。subagent 仅 Claude Code 消费（Codex 无 subagent 概念）；定义内通过正文显式路径引用 `.agents/rules/` 规约与 `.claude/skills/` 方法论，规约单一事实源不变。
+> 双工具共享同一套治理资产：`AGENTS.md`（两工具原生读取）+ `openspec/` + `.agents/rules/`。OpenSpec skill 由 CLI 为各工具安装原生拷贝，用 `openspec update` 同步升级；superpowers skill 为静态 markdown 双份拷贝，改动时两侧同步。subagent 定义同样为静态双份拷贝（Claude Code 消费 `.claude/agents/*.md`，Codex 消费 `.codex/agents/*.toml`），改动时两侧同步；定义正文通过显式路径引用 `.agents/rules/` 规约与 superpowers skills（Claude Code 侧读 `.claude/skills/`，Codex 侧读 `.agents/skills/`），规约单一事实源不变。
 
 ## 子模块说明
 
@@ -136,7 +136,7 @@ frontend 同理。
 - OpenSpec 命令（Claude Code）：`.claude/commands/opsx/{propose,apply,archive,explore,sync}.md`
 - OpenSpec skills：`.claude/skills/` 与 `.agents/skills/` 下的 `openspec-*/SKILL.md`（CLI 维护，勿手改）
 - Superpowers skills：`.claude/skills/` 与 `.agents/skills/` 下的 `{brainstorming,writing-plans,executing-plans,test-driven-development,subagent-driven-development,using-git-worktrees,requesting-code-review,verification-before-completion}/SKILL.md`
-- Subagent 定义（Claude Code 原生）：`.claude/agents/*.md`（product-manager / frontend-agent / backend-agent / interaction-agent / experience-agent / spec-reviewer / test-agent）
+- Subagent 定义：`.claude/agents/*.md`（Claude Code）+ `.codex/agents/*.toml`（Codex），7 角色双份同步（product-manager / frontend-agent / backend-agent / interaction-agent / experience-agent / spec-reviewer / test-agent）
 - OpenSpec 配置：[`openspec/config.yaml`](openspec/config.yaml)
 - 项目级 spec：[`openspec/project.md`](openspec/project.md)
 - 当前进行中的变更：`openspec/changes/`
