@@ -23,7 +23,7 @@ brainstorming  →  propose  →  design  →  tasks  →  TDD 实现  →  code
 ## 例外
 
 - 修复明显 typo / 注释 / 文档：可以跳过 propose，但仍需 TDD（如改了行为）。
-- 仅修改 `.claude/`、`.agents/` 或 `openspec/` 自身的配置文件：无需走 OpenSpec 流程。
+- 仅修改 `.claude/`、`.codex/`、`.agents/` 或 `openspec/` 自身的配置文件：无需走 OpenSpec 流程。
 
 ## 违反处理
 

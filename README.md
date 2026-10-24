@@ -6,7 +6,7 @@
 
 它不是一个业务项目，而是一套**给 AI 编码 agent 用的工作流脚手架**：
 
-- **Harness**：双工具配置——Claude Code 用 `.claude/`，Codex 用 `.agents/`，共享规约在 `.agents/rules/`
+- **Harness**：双工具配置——Claude Code 用 `.claude/`，Codex agents 用 `.codex/agents/`、skills 用 `.agents/skills/`，共享规约在 `.agents/rules/`
 - **OpenSpec**（[Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec)）：通过 `openspec init --tools claude,codex` **真实初始化**，CLI 由 `@fission-ai/openspec` 提供
 - **Superpowers**（[obra/superpowers](https://github.com/obra/superpowers)）：8 个核心 skills 的本地化模板，与 OpenSpec 官方 skill 共存
 
@@ -14,8 +14,9 @@
 
 ```
 .
-├── AGENTS.md              # AI agent 入口（先读这个，Claude Code / Codex 原生加载）
-├── .claude/               # Harness 层（Claude Code：skills + commands）
+├── AGENTS.md              # 共享入口；Claude Code 的加载条件见 docs/subagents.md
+├── .claude/               # Harness 层（Claude Code：agents + skills + commands）
+├── .codex/agents/         # Codex 原生自定义 agent（8 角色）
 ├── .agents/               # Harness 层（Codex：skills）+ 双工具共享 rules
 │   ├── rules/             # 编码 / 分域规约（共享）
 │   └── skills/            # OpenSpec 官方 + superpowers skills（Codex 用）
@@ -33,6 +34,8 @@
 2. OpenSpec 会按流程生成 `openspec/changes/<name>/{proposal,design,tasks}.md`，等你签字。
 3. 用 `/opsx:apply`（Codex：`$openspec-apply-change`）推进实现——superpowers 的 `test-driven-development` skill 会介入，强制 RED→GREEN→REFACTOR。
 4. 完成后 `/opsx:archive`（Codex：`$openspec-archive-change`）归档。
+
+需要使用产品、前后端、测试或审查角色时，阅读 [双工具自定义 agent 使用指南](docs/subagents.md)。8 个角色包含独立的 `spec-reviewer`、`code-reviewer` 和 `experience-agent`；两边共享角色职责，按各自原生格式配置。委派任务遵循 [Subagent 协作规约](.agents/rules/subagent-conventions.md)，本地验证结果见 [验证记录](docs/subagent-validation.md)。
 
 ## 依赖
 

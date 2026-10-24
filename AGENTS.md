@@ -6,7 +6,7 @@
 
 | 角色 | Git 仓库 | 路径 | 内容 |
 |---|---|---|---|
-| 工作区父仓 | https://github.com/huangkemingyyds/first | `.` | Harness（`.claude/` + `.agents/`）+ Spec（`openspec/`）+ submodule 指针 |
+| 工作区父仓 | https://github.com/huangkemingyyds/first | `.` | Harness（`.claude/` + `.codex/` + `.agents/`）+ Spec（`openspec/`）+ submodule 指针 |
 | Backend submodule | https://github.com/sqlyouran/first_backend | `backend/` | Java 17 + Spring Boot 3.3.5，HTTP API（端口 8080） |
 | Frontend submodule | https://github.com/sqlyouran/first_frontend | `frontend/` | Next.js 16 (App Router) + React 19 + TypeScript，UI 与薄 BFF（端口 3000） |
 
@@ -37,13 +37,21 @@ frontend 同理。
 
 | 层 | 目录 | 职责 |
 |---|---|---|
-| Harness | `.claude/`（Claude Code）+ `.agents/`（Codex） | 各工具的 agent 配置（skills / commands） |
+| Harness | `.claude/`（Claude Code）+ `.codex/`（Codex agents）+ `.agents/`（Codex skills / 共享 rules） | 各工具的原生 agent / skill / command 配置 |
 | OpenSpec | `openspec/` | Spec-driven 工作流：先对齐 spec，再写代码 |
 | Superpowers | `.claude/skills/` + `.agents/skills/` | 可组合的 skill 方法论（TDD / 计划 / review） |
 | 共享规约 | `.agents/rules/` | 双工具共用的编码 / 分域规约，写码前必读 |
-| Subagents | `.claude/agents/`（md）+ `.codex/agents/`（toml） | 双工具原生 subagent 定义（7 角色：product-manager / frontend / backend / interaction / experience / spec-reviewer / test-agent） |
+| Subagents | `.claude/agents/`（md）+ `.codex/agents/`（toml） | 双工具原生 subagent 定义（8 角色：product-manager / frontend / backend / interaction / experience / spec-reviewer / code-reviewer / test-agent） |
 
 > 双工具共享同一套治理资产：`AGENTS.md`（两工具原生读取）+ `openspec/` + `.agents/rules/`。OpenSpec skill 由 CLI 为各工具安装原生拷贝，用 `openspec update` 同步升级；superpowers skill 为静态 markdown 双份拷贝，改动时两侧同步。subagent 定义同样为静态双份拷贝（Claude Code 消费 `.claude/agents/*.md`，Codex 消费 `.codex/agents/*.toml`），改动时两侧同步；定义正文通过显式路径引用 `.agents/rules/` 规约与 superpowers skills（Claude Code 侧读 `.claude/skills/`，Codex 侧读 `.agents/skills/`），规约单一事实源不变。
+
+### 自定义 agent 的使用与维护
+
+- 委派前读取 [`.agents/rules/subagent-conventions.md`](.agents/rules/subagent-conventions.md)，交齐任务目标、规划审批状态、可修改文件范围、依赖与验收条件。8 个角色默认执行局部任务，由主 agent 统一安排后续委派和 review。
+- Claude Code 用 frontmatter 的 `skills` 预加载角色核心方法，`tools` 限制工具；Codex 用 TOML 的 `developer_instructions` 定义职责，并按正文路径读取 Skills。两侧同步职责和验收标准，原生配置字段不强行一一映射。
+- Codex 自定义 agent 继承父会话权限，不在角色 TOML 中设置 `sandbox_mode` / `approval_policy`。需要严格只读时，以 `codex --sandbox read-only` 启动父会话。
+- Claude Code v2.1.277+ 可原生读取 `AGENTS.md`；默认在工作目录或祖先目录存在 `CLAUDE.md` / `CLAUDE.local.md` 时改读 Claude 指令文件。若该环境未加载本文件，按官方方式在 `CLAUDE.md` 中导入 `@AGENTS.md`，或调整个人的 Project instructions 设置。
+- 调用示例、版本差异与官方来源见 [`docs/subagents.md`](docs/subagents.md)。
 
 ## 子模块说明
 
@@ -132,11 +140,12 @@ frontend 同理。
 
 - 编码规约：[`.agents/rules/coding-conventions.md`](.agents/rules/coding-conventions.md)
 - 工作流规则：[`.agents/rules/spec-driven-workflow.md`](.agents/rules/spec-driven-workflow.md)
+- Subagent 协作规则：[`.agents/rules/subagent-conventions.md`](.agents/rules/subagent-conventions.md)
 - 分域规约：`.agents/rules/{api,backend,frontend,database,styling}-conventions.md`
 - OpenSpec 命令（Claude Code）：`.claude/commands/opsx/{propose,apply,archive,explore,sync}.md`
 - OpenSpec skills：`.claude/skills/` 与 `.agents/skills/` 下的 `openspec-*/SKILL.md`（CLI 维护，勿手改）
 - Superpowers skills：`.claude/skills/` 与 `.agents/skills/` 下的 `{brainstorming,writing-plans,executing-plans,test-driven-development,subagent-driven-development,using-git-worktrees,requesting-code-review,verification-before-completion}/SKILL.md`
-- Subagent 定义：`.claude/agents/*.md`（Claude Code）+ `.codex/agents/*.toml`（Codex），7 角色双份同步（product-manager / frontend-agent / backend-agent / interaction-agent / experience-agent / spec-reviewer / test-agent）
+- Subagent 定义：`.claude/agents/*.md`（Claude Code）+ `.codex/agents/*.toml`（Codex），8 角色双份同步（product-manager / frontend-agent / backend-agent / interaction-agent / experience-agent / spec-reviewer / code-reviewer / test-agent）
 - OpenSpec 配置：[`openspec/config.yaml`](openspec/config.yaml)
 - 项目级 spec：[`openspec/project.md`](openspec/project.md)
 - 当前进行中的变更：`openspec/changes/`

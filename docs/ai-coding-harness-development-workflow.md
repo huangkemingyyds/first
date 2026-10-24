@@ -4,7 +4,9 @@
 >
 > 组合方式：Codex + OpenSpec + Superpowers + Claude Acceptance
 >
-> 版本：v1.0 · 2026-09-05
+> 版本：v1.1 · 2026-10-24
+>
+> 当前原生角色与调用方式见 [自定义 agent 使用指南](subagents.md)，验证范围见 [验证记录](subagent-validation.md)。本文的“Codex 开发者 / Claude 验收者”指两个主会话的分工；8 个专门子 agent 在两个工具中均可使用。
 
 ## 1. 文档目的
 
@@ -34,6 +36,8 @@ Codex 可以写 proposal、design、tasks、业务代码和测试，但不能批
 
 Claude 读取同一份 OpenSpec、代码 diff 和测试证据，独立判断是否通过。Claude 不修改 backend / frontend 业务代码，发现问题后返回带路径、行号和复现证据的 Action Items。
 
+主会话负责统筹这些工作。若使用项目内置子 agent，`product-manager` 负责需求与业务验收，技术 design 和工程 tasks 由主 agent 整合；实现者负责功能 TDD，`test-agent` 负责明确分配范围内的独立验证。`spec-reviewer`、`code-reviewer`、`experience-agent` 均只阅读和报告，不执行测试或写入 `acceptance.md`；主会话收集其结论、安排必要运行验证并保存报告。下文验收主会话的权限不自动授予这些子 agent。
+
 ### 2.2 OpenSpec 是共享契约
 
 两个智能体之间不通过大段聊天上下文交接，而通过以下文件同步：
@@ -62,7 +66,7 @@ Superpowers 负责规定“如何工作”，不决定“谁拥有代码写权�
 - brainstorming：在已有代码上建立问题地图；
 - writing-plans / OpenSpec：把需求转成可执行计划；
 - test-driven-development：严格 RED → GREEN → REFACTOR；
-- subagent-driven-development：把独立任务交给新上下文，并先做 Spec review 再做代码质量 review；
+- subagent-driven-development：把独立任务交给新上下文，分别完成 Spec review 和代码质量 review；输入稳定时可并行收集两类结果；
 - verification-before-completion：没有命令和输出证据就不能宣布完成；
 - requesting-code-review：批次完成后整理 diff、测试和风险。
 
@@ -170,7 +174,7 @@ Codex 只有在能回答以下问题后，才能进入需求讨论：
 
 ## 6. 阶段 1：探索与需求澄清
 
-使用 `/opsx:explore` 或 brainstorming skill，先建立 brownfield 项目的现状地图。
+Codex 使用 `$openspec-explore`，Claude Code 使用 `/opsx:explore`；也可使用 brainstorming skill，先建立已有项目的现状地图。
 
 这一阶段只做：
 
@@ -189,11 +193,13 @@ Codex 只有在能回答以下问题后，才能进入需求讨论：
 
 ## 7. 阶段 2：OpenSpec 变更设计
 
-Codex 运行：
+Codex 使用对应 Skill：
 
 ```text
-/opsx:propose <change-name>
+$openspec-propose <需求描述>
 ```
+
+Claude Code 对应入口为 `/opsx:propose <需求描述>`。
 
 ### 7.1 proposal.md
 
@@ -255,11 +261,13 @@ Spec 不应该绑定内部类名、函数名或具体实现步骤。
 
 ## 8. 阶段 3：Codex 使用 Superpowers 实现
 
-Codex 运行：
+Codex 使用对应 Skill：
 
 ```text
-/opsx:apply <change-name>
+$openspec-apply-change
 ```
+
+指定要推进的 `<change-name>`；Claude Code 对应入口为 `/opsx:apply <change-name>`。
 
 实现每个 task 时遵循：
 
@@ -637,8 +645,10 @@ git commit -m "feat: ..."
 最后执行：
 
 ```text
-/opsx:archive <change-name>
+$openspec-archive-change
 ```
+
+指定要归档的 `<change-name>`；Claude Code 对应入口为 `/opsx:archive <change-name>`。
 
 归档结果应包含：
 
@@ -653,29 +663,17 @@ openspec/changes/archive/YYYY-MM-DD-<change-name>/
 
 ## 15. 本仓库的落地清单
 
-要将这套流程真正接入 Codex + Claude，建议补充：
+本仓库已在 `.claude/agents/` 与 `.codex/agents/` 配置 8 个原生角色，共享 [Subagent 协作规约](../.agents/rules/subagent-conventions.md)。直接使用现有角色：
 
-```text
-CLAUDE.md
-.claude/agents/acceptance-reviewer.md
-.claude/agents/test-runner.md
-.claude/settings.json
-```
+- `product-manager` 与 `interaction-agent` 产出授权范围内的需求和交互文档。
+- `frontend-agent` 与 `backend-agent` 按已确认规划实施，并拥有分配功能的 RED → GREEN 测试。
+- `test-agent` 执行独立契约 / 集成 / E2E / 回归；修改测试前明确文件所有权。
+- `spec-reviewer`、`code-reviewer` 与 `experience-agent` 分别审查规格、代码风险和体验证据，只回传结论。
+- 主 agent 提供稳定 diff 和实际运行证据，统一持久化 `acceptance.md`、处理人类验收与归档。
 
-并调整：
+Claude 三个审查角色的工具白名单为 `Read, Grep, Glob`。Codex 子 agent 继承父会话权限，需要严格只读时以 `codex --sandbox read-only` 启动父会话；角色正文的只读要求不构成独立沙箱。
 
-```text
-frontend/CLAUDE.md
-```
-
-建议的验收 agent 只具备：
-
-- Read / Glob / Grep；
-- Bash 或 PowerShell 测试执行能力；
-- 只允许写 `acceptance.md` 的受控输出能力；
-- 不允许写 backend / frontend 业务代码。
-
-如果使用 Claude hooks，可以在 `PreToolUse` 阶段阻止对业务目录的 Write / Edit；如果暂时不配置 hooks，至少在验收 agent 的工具清单和系统提示中明确禁止修改源代码，并通过 git diff 检查验收前后工作区不能发生业务代码变化。
+按 [使用指南](subagents.md) 确认 `AGENTS.md` 已加载。兼容旧版 Claude 或需要导入时在对应 `CLAUDE.md` 写入 `@AGENTS.md`，避免复制治理规约。角色存在不等于已成功委派，应核对原生调用事件及返回证据。
 
 ## 16. 完成标准
 
